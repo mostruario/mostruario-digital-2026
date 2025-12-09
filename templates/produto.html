@@ -152,7 +152,6 @@ h1 { font-size: 22px; margin-bottom: 4px; }
 
 #checkboxes-status label { text-transform: uppercase; }
 
-/* -------------- BOTÃO PRETO -------------- */
 .btn-aplicar {
     padding: 4px 12px;
     font-size: 11px;
@@ -169,15 +168,19 @@ h1 { font-size: 22px; margin-bottom: 4px; }
 }
 .btn-aplicar:hover { background: #333; }
 
-/* ❌ REMOVIDO: campo de pesquisa
-#pesquisa-acabamento {
+/* NOVO: campo de pesquisa idêntico ao layout dos filtros */
+.input-pesquisa {
     width: 150px;
     padding: 6px 12px;
     border-radius: 25px;
     border: none;
+    background: linear-gradient(135deg, #ffffff, #f7f7f7);
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-size: 13px;
 }
-*/
+.input-pesquisa:hover {
+    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+}
 </style>
 </head>
 <body>
@@ -228,7 +231,9 @@ h1 { font-size: 22px; margin-bottom: 4px; }
         </div>
     </div>
 
-    <!-- ❌ REMOVIDO: bloco de pesquisa -->
+    <!-- NOVO FILTRO — Pesquisar acabamento -->
+    <input type="text" id="pesq-acab" class="input-pesquisa" placeholder="Pesquisar acabamento" onkeyup="filtrarPesquisaLivre()">
+
 </div>
 
 <div id="blocosAcabamentos">
@@ -239,7 +244,7 @@ h1 { font-size: 22px; margin-bottom: 4px; }
             {% for categoria, lista in categorias.items() %}
                 {% for item in lista %}
                     {% if item.ACABAMENTO == acabamento and item.IMG %}
-                    <div class="card" data-status="{{ (item.STATUS or '')|lower }}" data-acab="{{ item.ACABAMENTO|lower }}">
+                    <div class="card" data-status="{{ (item.STATUS or '')|lower }}" data-acab="{{ item.ACABAMENTO|lower }}" data-tipo="{{ item.TIPO|lower }}">
                         {% if item.STATUS and item.STATUS|lower == 'indisponivel' %}
                             <div class="status-icon" style="top:30px; left:50%; transform: translateX(-50%);">
                                 <svg viewBox="0 0 24 24" width="24" height="24">
@@ -282,7 +287,6 @@ h1 { font-size: 22px; margin-bottom: 4px; }
 </div>
 
 <script>
-// Toggle
 function toggleCheckboxes(tipo){
     const cb = document.getElementById('checkboxes-' + tipo);
     cb.style.display = cb.style.display === 'block' ? 'none' : 'block';
@@ -293,40 +297,45 @@ document.addEventListener('click', function(e){
     }
 });
 
-// TODAS → desmarca outras
 function selecionarTodos(checkbox, tipo) {
     const lista = document.querySelectorAll('#checkboxes-' + tipo + ' input[type="checkbox"]');
-
-    lista.forEach(cb => {
-        if(cb.value !== 'todos') cb.checked = checkbox.checked;
-    });
+    lista.forEach(cb => { if(cb.value !== 'todos') cb.checked = checkbox.checked; });
 }
 
-// acabamento → desmarca TODOS
 function selecionarAcabamento(cb) {
     const todos = document.querySelector('#checkboxes-acabamento input[value="todos"]');
     if(cb.checked) todos.checked = false;
 }
 
-// Aplicar Filtro
 function aplicarFiltro(tipo){
     const selAcab = Array.from(document.querySelectorAll('#checkboxes-acabamento input:checked'))
                         .map(i=>i.value.toLowerCase()).filter(v=>v!=='todos');
-
     const selStatus = Array.from(document.querySelectorAll('#checkboxes-status input:checked'))
                         .map(i=>i.value.toLowerCase()).filter(v=>v!=='todos');
 
+    filtrar(selAcab, selStatus);
+    document.getElementById('checkboxes-' + tipo).style.display = 'none';
+}
+
+function filtrarPesquisaLivre() {
+    const texto = document.getElementById("pesq-acab").value.toLowerCase();
+    filtrar([], [], texto);
+}
+
+function filtrar(selAcab = [], selStatus = [], textoLivre = "") {
     document.querySelectorAll('#blocosAcabamentos .acabamento-bloco').forEach(bloco=>{
         let mostrarBloco = false;
 
         bloco.querySelectorAll('.card').forEach(card=>{
             const cardAcab = card.dataset.acab;
             const cardStatus = card.dataset.status;
+            const cardTipo = card.dataset.tipo;
 
             let mostrar = true;
 
             if(selAcab.length && !selAcab.includes(cardAcab)) mostrar = false;
             if(selStatus.length && !selStatus.includes(cardStatus)) mostrar = false;
+            if(textoLivre && !cardTipo.includes(textoLivre)) mostrar = false;
 
             card.style.display = mostrar ? '' : 'none';
             if(mostrar) mostrarBloco = true;
@@ -334,13 +343,12 @@ function aplicarFiltro(tipo){
 
         bloco.style.display = mostrarBloco ? '' : 'none';
     });
-
-    document.getElementById('checkboxes-' + tipo).style.display = 'none';
 }
 </script>
 
 </body>
 </html>
+
 
 
 
