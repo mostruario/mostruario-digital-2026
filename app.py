@@ -106,7 +106,8 @@ def remover_acentos(txt):
 # ------------------------------------------
 # Carregar Excel — automático
 # ------------------------------------------
-arquivo = r"P:\22_MOSTRUARIO DIGITAL\CATALAGO MOSTRUARIO DIGITAL.xlsx"
+arquivo = "data/CATALAGO MOSTRUARIO DIGITAL.xlsx"
+
 
 todas_abas = pd.read_excel(arquivo, sheet_name=None)
 
