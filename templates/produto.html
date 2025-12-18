@@ -24,6 +24,25 @@ body {
     width: 80px;
     height: auto;
 }
+.btn-download {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin-top: 6px;
+    background: #000;
+    color: #fff;
+    border-radius: 50%;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.btn-download:hover {
+    background: #333;
+    transform: translateY(-1px);
+}
 
 h1 { font-size: 22px; margin-bottom: 4px; }
 .codigo-produto { margin-top: 0; font-size: 14px; }
@@ -200,6 +219,180 @@ h1 { font-size: 22px; margin-bottom: 4px; }
     .acabamentos-grid { grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); }
     .card img { height: 100px; }
 }
+/* ===== AJUSTES EXCLUSIVOS PARA PDF ===== */
+@media print {
+
+    /* ===== CONFIGURAÇÃO DA PÁGINA ===== */
+    @page {
+        size: A4;
+        margin: 15mm;
+    }
+
+    /* ===== ESCONDER ELEMENTOS DA WEB ===== */
+    .filtros,
+    .btn-download,
+    .voltar-topo {
+        display: none !important;
+    }
+
+    /* ===== BODY ===== */
+    body {
+        background: #fff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+/* ===== AJUSTE LOGO E TÍTULO ===== */
+.logo {
+    top: 0 !important;
+    margin-bottom: 20px !important; /* 🔹 ESPAÇO ENTRE LOGO E TÍTULO */
+}
+
+/* ===== AJUSTE REAL ENTRE LOGO E TÍTULO ===== */
+h1 {
+    margin-top: 0 !important;
+    padding-top: 40px !important; /* ← CRIA ESPAÇO ABAIXO DO LOGO */
+}
+
+.codigo-produto {
+    margin-top: 4px !important;
+}
+
+    /* ===== GRID ALINHADO À ESQUERDA ===== */
+    .acabamentos-grid {
+        grid-template-columns: repeat(6, 106px) !important;
+        gap: 6px !important;
+        justify-content: start !important;
+        margin-left: 0 !important;
+        margin-right: auto !important;
+    }
+
+    /* ===== CARD ===== */
+    .card {
+        page-break-inside: avoid;
+        break-inside: avoid;
+
+        width: 106px !important;
+        min-width: 106px !important;
+        max-width: 106px !important;
+
+        padding: 6px !important;
+
+        border: 0.5px solid #000 !important;
+        border-radius: 2px !important;
+        box-shadow: none !important;
+        background: #fff !important;
+    }
+
+    /* ===== BLOCO DE ACABAMENTO ===== */
+    .acabamento-bloco {
+        margin-bottom: 16px !important;
+    }
+
+    /* ===== TÍTULO DO ACABAMENTO ===== */
+    .acabamento-bloco h3 {
+        margin-top: 12px !important;
+        margin-bottom: 6px !important;
+        page-break-after: avoid;
+    }
+
+    /* ===== IMAGEM ===== */
+    .card img {
+        height: 70px !important;
+        margin-bottom: 4px !important;
+        display: block !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    /* ===== TEXTOS ===== */
+    .acab-nome {
+        font-size: 9px !important;
+        line-height: 1.1 !important;
+        min-height: 18px !important;
+        max-height: 18px !important;
+    }
+
+    .status {
+        font-size: 8px !important;
+        margin: 1px 0 !important;
+    }
+
+    .status-data {
+        font-size: 7px !important;
+        min-height: 10px !important;
+        margin: 0 0 2px 0 !important;
+    }
+
+    .meta {
+        font-size: 7px !important;
+        line-height: 1.1 !important;
+        margin: 1px 0 !important;
+    }
+
+    .meta.comp {
+        font-size: 6.5px !important;
+        max-height: 2em !important;
+        overflow: hidden !important;
+    }
+
+    .meta.restricao {
+        font-size: 8px !important;
+        max-height: 2.2em !important;
+    }
+
+    .informacao-complementar {
+        font-size: 7px !important;
+    }
+}
+/* ===== ÍCONE INDISPONÍVEL (PDF) ===== */
+.status-icon {
+    display: block !important;
+    position: absolute !important;
+    z-index: 10 !important;
+}
+
+.status-icon svg {
+    display: block !important;
+    width: 24px !important;
+    height: 24px !important;
+}
+.zoom-img {
+    cursor: pointer;
+}
+/* ===== ÍCONE + PARA ZOOM ===== */
+.zoom-plus {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+
+    background: none;
+    border-radius: 0;
+    width: auto;
+    height: auto;
+
+    color: #fff;
+    font-size: 22px;
+    font-weight: 300;
+    line-height: 1;
+
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+/* aparece ao passar o mouse */
+.card:hover .zoom-plus {
+    opacity: 1;
+}
+
+/* no celular fica sempre visível */
+@media (max-width: 768px) {
+    .zoom-plus {
+        opacity: 1;
+    }
+}
+
 </style>
 </head>
 <body>
@@ -207,12 +400,23 @@ h1 { font-size: 22px; margin-bottom: 4px; }
 
 <img src="{{ url_for('static', filename='LOGO CLAMI.png') }}" alt="Logo" class="logo">
 
+
 <a href="/" class="voltar-topo" title="Voltar">
     <svg width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" fill="none"></path></svg>
 </a>
 
 <h1>{{ nome }}</h1>
 <p class="codigo-produto">Código: {{ fornecedor }}</p>
+
+<a href="{{ url_for('download', nome=nome) }}" class="btn-download" title="Download PDF">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+</a>
+
 
 <div>
     {% for img in imagens_produto %}
@@ -222,7 +426,6 @@ h1 { font-size: 22px; margin-bottom: 4px; }
 
 <!-- FILTROS -->
 <div class="filtros">
-    <!-- Acabamento -->
     <div class="multiselect">
         <div class="selectBox" onclick="toggleCheckboxes('acabamento')">Acabamento</div>
         <div class="checkboxes" id="checkboxes-acabamento">
@@ -234,7 +437,6 @@ h1 { font-size: 22px; margin-bottom: 4px; }
         </div>
     </div>
 
-    <!-- Status -->
     <div class="multiselect">
         <div class="selectBox" onclick="toggleCheckboxes('status')">Status</div>
         <div class="checkboxes" id="checkboxes-status">
@@ -246,7 +448,6 @@ h1 { font-size: 22px; margin-bottom: 4px; }
         </div>
     </div>
 
-    <!-- Pesquisa -->
     <input type="text" id="pesq-acab" class="input-pesquisa" placeholder="Pesquisar acabamento" onkeyup="filtrarPesquisaLivre()">
 </div>
 
@@ -260,14 +461,17 @@ h1 { font-size: 22px; margin-bottom: 4px; }
                     {% if item.ACABAMENTO == acabamento and item.IMG %}
                     <div class="card" data-status="{{ (item.STATUS or '')|lower }}" data-acab="{{ item.ACABAMENTO|lower }}" data-tipo="{{ item.TIPO|lower }}">
                         {% if item.STATUS and item.STATUS|lower == 'indisponivel' %}
-                            <div class="status-icon" style="top:30px; left:50%; transform: translateX(-50%);">
-                                <svg viewBox="0 0 24 24" width="24" height="24">
-                                    <circle cx="12" cy="12" r="10" stroke="red" stroke-width="2" fill="none"/>
-                                    <line x1="6" y1="18" x2="18" y2="6" stroke="red" stroke-width="2"/>
-                                </svg>
-                            </div>
+                        <div class="status-icon" style="top:30px; left:50%; transform: translateX(-50%);">
+                            <svg viewBox="0 0 24 24" width="24" height="24">
+                                <circle cx="12" cy="12" r="10" stroke="red" stroke-width="2" fill="none"/>
+                                <line x1="6" y1="18" x2="18" y2="6" stroke="red" stroke-width="2"/>
+                            </svg>
+                        </div>
                         {% endif %}
-                        <img src="{{ item.IMG }}" alt="{{ item.TIPO }}">
+                        <div style="position: relative;">
+    <img src="{{ item.IMG }}" alt="{{ item.TIPO }}" class="zoom-img">
+    <div class="zoom-plus">+</div>
+</div>
                         <div style="margin-top: 8px;">
                             <div class="acab-nome">{{ item.TIPO }}</div>
                             {% if item.STATUS %}
@@ -294,6 +498,37 @@ h1 { font-size: 22px; margin-bottom: 4px; }
         <svg width="20" height="20"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2" fill="none"></path></svg>
     </a>
 </div>
+
+</div>
+</div>
+
+<!-- MODAL ZOOM IMAGEM -->
+<div id="zoomModal" style="
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.9);
+    z-index:99999;
+
+    align-items:center;
+    justify-content:center;
+">
+
+
+    <span id="zoomClose" style="
+        position:absolute;
+        top:20px;
+        right:30px;
+        font-size:40px;
+        color:#fff;
+        cursor:pointer;
+    ">&times;</span>
+
+    <img id="zoomImg" style="
+    max-width:90%;
+    max-height:90%;
+    object-fit:contain;
+">
 
 </div>
 
@@ -353,14 +588,26 @@ function filtrar(selAcab = [], selStatus = [], textoLivre = "") {
 
         bloco.style.display = mostrarBloco ? '' : 'none';
     });
+
 }
+// ZOOM IMAGEM
+document.querySelectorAll('.zoom-img').forEach(img => {
+    img.addEventListener('click', function (e) {
+        e.stopPropagation();
+        document.getElementById('zoomModal').style.display = 'flex';
+        document.getElementById('zoomImg').src = this.src;
+    });
+});
+
+document.getElementById('zoomClose').onclick = function (e) {
+    e.stopPropagation();
+    document.getElementById('zoomModal').style.display = 'none';
+};
+
+document.getElementById('zoomModal').onclick = function () {
+    this.style.display = 'none';
+};
 </script>
 
 </body>
 </html>
-
-
-
-
-
-

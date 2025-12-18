@@ -1,7 +1,10 @@
 import pandas as pd
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, send_file
 from datetime import datetime
 import unicodedata
+import io
+from weasyprint import HTML
+from flask import Response
 
 app = Flask(__name__)
 
@@ -306,6 +309,126 @@ def detalhes(nome):
         ultima_modificacao=ultima_atualizacao,
         status_coletados=status_coletados
     )
+# ------------------------------------------
+# ROTA DOWNLOAD PDF – ACABAMENTOS
+# ------------------------------------------
+@app.route("/download/<nome>")
+def download(nome):
+    # ---------------------------
+    # Reutiliza exatamente a lógica do /produto/<nome>
+    # ---------------------------
+    df_item = df_produtos[df_produtos["PRODUTO"] == nome]
+
+    if df_item.empty:
+        mask = df_produtos["PRODUTO"].astype(str).str.strip().str.lower() == str(nome).strip().lower()
+        df_item = df_produtos[mask]
+
+    if df_item.empty:
+        return f"Produto '{nome}' não encontrado."
+
+    item = df_item.iloc[0]
+    fornecedor = normaliza_fornecedor_to_str(item.get("FORNECEDOR", ""))
+    marca = item.get("MARCA", "") if "MARCA" in item else ""
+
+    imagens_produto = []
+    if "IMAGEM PRODUTO" in df_item.columns:
+        imagens_produto = df_item["IMAGEM PRODUTO"].dropna().unique().tolist()
+        imagens_produto = [caminho_para_static(x) for x in imagens_produto if caminho_para_static(x)]
+
+    if not df_fornecedores.empty:
+        df_f = df_fornecedores.copy()
+        if "FORNECEDOR_STR" not in df_f.columns and "FORNECEDOR" in df_f.columns:
+            df_f["FORNECEDOR_STR"] = df_f["FORNECEDOR"].apply(normaliza_fornecedor_to_str)
+        acabamentos_fornecedor = df_f[df_f["FORNECEDOR_STR"] == fornecedor].copy()
+    else:
+        acabamentos_fornecedor = pd.DataFrame()
+
+    categorias = {}
+    for _, row in acabamentos_fornecedor.iterrows():
+        categoria_raw = get_row_value(row, "TIPO DE ACABAMENTO", "TIPO_ACABAMENTO")
+        categoria = limpa(categoria_raw) or "OUTROS"
+        categorias.setdefault(categoria, [])
+
+        acabamento_val = limpa(get_row_value(row, "ACABAMENTO"))
+        tipo_val = limpa(get_row_value(row, "TIPO DE ACABAMENTO", "TIPO_ACABAMENTO"))
+        comp_val = limpa(get_row_value(row, "COMPOSIÇÃO", "COMPOSICAO"))
+        status_val = limpa(get_row_value(row, "STATUS"))
+        status_data_fmt = format_status_data(get_row_value(row, "STATUS_DATA", "STATUS DATA"))
+        restr_val = limpa(get_row_value(row, "RESTRIÇÃO", "RESTRICAO"))
+        info_val = limpa(get_row_value(row, "INFORMACAO_COMPLEMENTAR", "INFORMAÇÃO COMPLEMENTAR"))
+        img_val = limpa(get_row_value(row, "IMAGEM ACABAMENTO", "IMAGEM"))
+
+        st_norm = status_val.lower()
+        if st_norm == "indisponivel":
+            status_cor = "#FF0000"
+        elif st_norm == "suspenso":
+            status_cor = "#D4A017"
+        elif st_norm == "ativo":
+            status_cor = "#008000"
+        else:
+            status_cor = "#000"
+
+        categorias[categoria].append({
+            "ACABAMENTO": acabamento_val,
+            "TIPO": tipo_val,
+            "COMP": comp_val,
+            "STATUS": status_val,
+            "STATUS_DATA": status_data_fmt,
+            "STATUS_COR": status_cor,
+            "RESTR": restr_val,
+            "INFO": info_val,
+            "IMG": caminho_para_static(img_val) if img_val else ""
+        })
+
+    acabamentos_lista = (
+        acabamentos_fornecedor["ACABAMENTO"]
+        .dropna()
+        .astype(str)
+        .str.strip()
+        .unique()
+        .tolist()
+    ) if "ACABAMENTO" in acabamentos_fornecedor.columns else []
+
+    ultima_atualizacao = "Data não disponível"
+    if "ULTIMA_ATUALIZACAO" in acabamentos_fornecedor.columns:
+        parsed = parse_datas_variadas(acabamentos_fornecedor["ULTIMA_ATUALIZACAO"])
+        if parsed.notna().any():
+            ultima_atualizacao = parsed.max().strftime("%d/%m/%Y")
+
+    status_coletados = []
+    if "STATUS" in acabamentos_fornecedor.columns:
+        status_coletados = sorted(
+            {str(s).strip().lower() for s in acabamentos_fornecedor["STATUS"].dropna()}
+        )
+
+    # ---------------------------
+    # Renderiza HTML → PDF
+    # ---------------------------
+    html = render_template(
+        "produto.html",   # <-- O MESMO template da tela
+        nome=nome,
+        fornecedor=fornecedor,
+        marca=marca,
+        imagens_produto=imagens_produto,
+        categorias=categorias,
+        acabamentos_lista=acabamentos_lista,
+        ultima_modificacao=ultima_atualizacao,
+        status_coletados=status_coletados,
+        modo_pdf=True     # flag opcional
+    )
+
+    pdf = HTML(
+        string=html,
+        base_url=request.root_url
+    ).write_pdf()
+
+    return Response(
+        pdf,
+        mimetype="application/pdf",
+        headers={
+            "Content-Disposition": f"attachment; filename={nome}_acabamentos.pdf"
+        }
+    )
 
 # ------------------------------------------
 # ROTA INDEX (atualizada com filtros)
@@ -385,9 +508,3 @@ def index():
 # ------------------------------------------
 if __name__ == "__main__":
     app.run(debug=True)
-
-
-
-
-
-

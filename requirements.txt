@@ -3,3 +3,4 @@ gunicorn
 pandas
 reportlab
 openpyxl
+weasyprint

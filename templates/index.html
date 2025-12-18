@@ -16,8 +16,8 @@
         .header {
             position: relative;
             text-align: left;
-            margin-bottom: 25px; /* AUMENTADO PARA DAR ESPAÇO NO CELULAR */
-            padding-top: 60px;   /* AUMENTADO */
+            margin-bottom: 25px;
+            padding-top: 60px;
             padding-left: 10px;
         }
 
@@ -78,11 +78,11 @@
             padding: 6px 12px;
             cursor: pointer;
             font-size: 14px;
-            color: #000 !important; /* PRETO NO CELULAR */
+            color: #000 !important;
         }
 
         .dropdown-content label input {
-            accent-color: #000 !important; /* checkbox preto */
+            accent-color: #000 !important;
         }
 
         .dropdown-content label:hover {
@@ -120,11 +120,16 @@
             color: #000;
         }
 
-        /* MOBILE AJUSTE (logo + filtros) */
+        /* AJUSTE MOBILE → TODOS OS CAMPOS IGUAIS */
         @media (max-width: 600px) {
+            .dropdown,
+            .filtros input[type="text"] {
+                width: 100% !important;   /* <<< AQUI — agora ficam iguais */
+            }
+
             .header {
-                margin-bottom: 35px; /* AUMENTA O ESPAÇO NO CELULAR */
-                padding-top: 80px;   /* AUMENTA MAIS */
+                margin-bottom: 35px;
+                padding-top: 80px;
             }
         }
 
@@ -248,7 +253,7 @@
         </div>
     </div>
 
-    <!-- FORNECEDORES ORDENADOS -->
+    <!-- FORNECEDORES -->
     <div class="dropdown" id="dropdown-fornecedor">
         <button type="button">Código</button>
         <div class="dropdown-content">
