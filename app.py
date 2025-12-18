@@ -422,13 +422,21 @@ def download(nome):
         base_url=request.root_url
     ).write_pdf()
 
+    pdf = HTML(
+        string=html,
+        base_url=request.root_url
+    ).write_pdf()
+
     return Response(
         pdf,
         mimetype="application/pdf",
         headers={
-            "Content-Disposition": f"attachment; filename={nome}_acabamentos.pdf"
+            "Content-Disposition": f'attachment; filename="{nome}_acabamentos.pdf"',
+            "Content-Length": str(len(pdf)),
+            "Cache-Control": "no-store"
         }
     )
+
 
 # ------------------------------------------
 # ROTA INDEX (atualizada com filtros)
